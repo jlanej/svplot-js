@@ -34,13 +34,19 @@ export class Renderer {
    * @private
    */
   _setupCanvas() {
-    const dpr = window.devicePixelRatio || 1;
-    const rect = this.canvas.getBoundingClientRect();
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
-    this.ctx.scale(dpr, dpr);
-    this.width = rect.width;
-    this.height = rect.height;
+    const dpr = (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
+    if (typeof this.canvas.getBoundingClientRect === 'function') {
+      const rect = this.canvas.getBoundingClientRect();
+      this.canvas.width = rect.width * dpr;
+      this.canvas.height = rect.height * dpr;
+      this.ctx.scale(dpr, dpr);
+      this.width = rect.width;
+      this.height = rect.height;
+    } else {
+      // Node.js canvas — dimensions are already set
+      this.width = this.canvas.width;
+      this.height = this.canvas.height;
+    }
   }
 
   /**
