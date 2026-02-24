@@ -187,9 +187,10 @@ export class Renderer {
       ctx.restore();
     }
 
-    // Draw SV title
+    // Draw SV title above the variant bar, matching samplot style
     const svSize = Math.abs(svEnd - svStart);
-    const svTitle = `${formatSize(svSize)} ${svType.toLowerCase()}`;
+    const chromLabel = chrom.startsWith('chr') ? chrom : 'chr' + chrom;
+    const svTitle = `${chromLabel}:${formatPosition(svStart)}-${formatPosition(svEnd)} (${formatSize(svSize)} ${svType})`;
     ctx.save();
     ctx.fillStyle = '#000000';
     ctx.font = `${this.options.titleFontSize}px ${this.options.fontFamily}`;
@@ -215,18 +216,18 @@ export class Renderer {
     drawBorder,
   ) {
     const ctx = this.ctx;
-    const coverageH = h * 0.3;
-    const readsH = h * 0.65;
-    const labelH = h * 0.05;
+    const labelH = 16;
+    const coverageH = (h - labelH) * 0.3;
+    const readsH = (h - labelH) * 0.7;
     const coverageY = y + labelH;
     const readsY = coverageY + coverageH;
 
-    // Draw sample label
+    // Draw sample label (samplot: fontsize=8, loc="left")
     ctx.save();
     ctx.fillStyle = '#000000';
     ctx.font = `bold ${this.options.labelFontSize}px ${this.options.fontFamily}`;
     ctx.textAlign = 'left';
-    ctx.fillText(label, x + 4, y + labelH);
+    ctx.fillText(label, x + 4, y + labelH - 3);
     ctx.restore();
 
     // Draw coverage
@@ -235,10 +236,10 @@ export class Renderer {
     // Draw reads
     this._drawReads(x, readsY, w, readsH, sampleData, ranges, maxInsertSize);
 
-    // Draw coverage Y-axis label
+    // Draw coverage Y-axis with "Coverage" label (matching samplot)
     this._drawCoverageAxis(x + w, coverageY, coverageH, maxCoverage);
 
-    // Draw insert size Y-axis label
+    // Draw insert size Y-axis with "Insert size" label (matching samplot)
     this._drawInsertAxis(x + w, readsY, readsH, maxInsertSize);
 
     // Draw panel border
@@ -445,7 +446,7 @@ export class Renderer {
     ctx.lineTo(x + w, y);
     ctx.stroke();
 
-    // Draw ticks
+    // Draw ticks (samplot uses matplotlib default ~6 ticks)
     const numTicks = 5;
     for (let i = 0; i <= numTicks; i++) {
       const frac = i / numTicks;
@@ -462,12 +463,12 @@ export class Renderer {
       ctx.fillText(formatPosition(genomePos), px, y + 16);
     }
 
-    // Chromosome label
-    ctx.font = `bold ${this.options.tickFontSize}px ${this.options.fontFamily}`;
+    // Chromosome label (samplot: "Chromosomal position on chrX", fontsize=8)
     const chromLabel = range.chrom.startsWith('chr')
       ? range.chrom
       : 'chr' + range.chrom;
-    ctx.fillText(chromLabel, x + w / 2, y + 28);
+    ctx.font = `${this.options.tickFontSize}px ${this.options.fontFamily}`;
+    ctx.fillText(`Chromosomal position on ${chromLabel}`, x + w / 2, y + 30);
 
     ctx.restore();
   }
@@ -478,13 +479,24 @@ export class Renderer {
    */
   _drawCoverageAxis(x, y, h, maxCoverage) {
     const ctx = this.ctx;
+    const tickFont = this.options.tickFontSize - 1;
     ctx.save();
-    ctx.fillStyle = '#999999';
-    ctx.font = `${this.options.tickFontSize - 1}px ${this.options.fontFamily}`;
+    ctx.fillStyle = '#666666';
+    ctx.font = `${tickFont}px ${this.options.fontFamily}`;
     ctx.textAlign = 'left';
 
-    ctx.fillText(Math.round(maxCoverage).toString(), x + 4, y + 10);
+    // Max and min tick values
+    ctx.fillText(Math.round(maxCoverage).toString(), x + 4, y + tickFont);
     ctx.fillText('0', x + 4, y + h - 2);
+
+    // Rotated "Coverage" label (matching samplot set_ylabel)
+    ctx.save();
+    ctx.translate(x + 4 + 30, y + h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.font = `${tickFont + 1}px ${this.options.fontFamily}`;
+    ctx.fillText('Coverage', 0, 0);
+    ctx.restore();
 
     ctx.restore();
   }
@@ -495,15 +507,26 @@ export class Renderer {
    */
   _drawInsertAxis(x, y, h, maxInsertSize) {
     const ctx = this.ctx;
+    const tickFont = this.options.tickFontSize - 1;
     ctx.save();
-    ctx.fillStyle = '#999999';
-    ctx.font = `${this.options.tickFontSize - 1}px ${this.options.fontFamily}`;
+    ctx.fillStyle = '#666666';
+    ctx.font = `${tickFont}px ${this.options.fontFamily}`;
     ctx.textAlign = 'left';
 
     const label = maxInsertSize > 1000
       ? `${(maxInsertSize / 1000).toFixed(1)}k`
       : maxInsertSize.toString();
-    ctx.fillText(label, x + 4, y + 10);
+    ctx.fillText(label, x + 4, y + tickFont);
+    ctx.fillText('0', x + 4, y + h - 2);
+
+    // Rotated "Insert size" label (matching samplot set_ylabel)
+    ctx.save();
+    ctx.translate(x + 4 + 30, y + h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.font = `${tickFont + 1}px ${this.options.fontFamily}`;
+    ctx.fillText('Insert size', 0, 0);
+    ctx.restore();
 
     ctx.restore();
   }
