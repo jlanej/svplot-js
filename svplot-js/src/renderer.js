@@ -227,6 +227,7 @@ export class Renderer {
     ctx.fillStyle = '#000000';
     ctx.font = `bold ${this.options.labelFontSize}px ${this.options.fontFamily}`;
     ctx.textAlign = 'left';
+    // Offset by -3 to vertically center text within the labelH region
     ctx.fillText(label, x + 4, y + labelH - 3);
     ctx.restore();
 
