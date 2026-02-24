@@ -1,8 +1,21 @@
 # samplot.js
 
-Browser-based interactive structural variant visualization, ported from [samplot](https://github.com/ryanlayer/samplot).
+> **⚠️ IMPORTANT: This is NOT samplot. This is an AI-generated prototype.**
+>
+> This project was created with AI assistance as an experimental attempt to bring [samplot](https://github.com/ryanlayer/samplot)-style structural variant visualization to the browser. **It is a proof-of-concept and should not be mistaken for, or used in place of, the original [samplot](https://github.com/ryanlayer/samplot).**
+>
+> **For production use, research, and publications, please use and cite the original samplot:**
+>
+> - **Repository:** <https://github.com/ryanlayer/samplot>
+> - **Citation:** Belyeu, J.R., Nicholas, T.J., Pedersen, B.S. et al. SV-plaudit: A cloud-based framework for manually curating thousands of structural variants. *GigaScience*, 7(7), 2018.
+>
+> All credit for the original samplot concept, design, and implementation belongs to [Ryan Layer](https://github.com/ryanlayer) and the samplot contributors.
 
-samplot.js reads indexed BAM files directly in the browser and renders samplot-style visualizations on an HTML5 Canvas — no server-side processing required.
+---
+
+Browser-based interactive structural variant visualization, inspired by [samplot](https://github.com/ryanlayer/samplot).
+
+This prototype reads indexed BAM files directly in the browser and renders samplot-style visualizations on an HTML5 Canvas — no server-side processing required.
 
 ## Features
 
@@ -169,7 +182,9 @@ src/
 
 ## Comparison with Python samplot
 
-This JavaScript port focuses on **short-read WGS** visualization. The following features from Python samplot are supported:
+> **Reminder:** This is an AI-generated prototype, not a replacement for samplot. For production use, please visit <https://github.com/ryanlayer/samplot>.
+
+This JavaScript prototype focuses on **short-read WGS** visualization. The following features from Python samplot are partially replicated:
 
 - ✅ Multi-sample BAM visualization
 - ✅ Paired-end read display with event type coloring
@@ -185,6 +200,18 @@ Features not yet ported:
 - ❌ Transcript tracks
 - ❌ CRAM file support
 - ❌ VCF batch processing
+
+## Acknowledgements & Citation
+
+This project is an **AI-generated prototype** inspired entirely by [**samplot**](https://github.com/ryanlayer/samplot) by Ryan Layer and contributors. All credit for the original concept, algorithms, and visual design belongs to the samplot team.
+
+**If you are a researcher or developer looking for a production-ready structural variant visualization tool, please use and cite samplot:**
+
+> Belyeu, J.R., Nicholas, T.J., Pedersen, B.S. et al. SV-plaudit: A cloud-based framework for manually curating thousands of structural variants. *GigaScience*, 7(7), 2018.
+>
+> GitHub: <https://github.com/ryanlayer/samplot>
+
+This prototype is not affiliated with, endorsed by, or a replacement for samplot. It is an experimental, AI-assisted exploration of bringing samplot-style visualizations to the browser.
 
 ## License
 
