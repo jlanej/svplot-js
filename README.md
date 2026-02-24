@@ -1,5 +1,7 @@
 # svplot-js
 
+[![CI](https://github.com/jlanej/svplot-js/actions/workflows/ci.yml/badge.svg)](https://github.com/jlanej/svplot-js/actions/workflows/ci.yml)
+
 > **⚠️ IMPORTANT: This is NOT samplot. This is an AI-generated prototype.**
 >
 > This project was created with AI assistance as an experimental attempt to bring [samplot](https://github.com/ryanlayer/samplot)-style structural variant visualization to the browser. **It is a proof-of-concept and should not be mistaken for, or used in place of, the original [samplot](https://github.com/ryanlayer/samplot).**
@@ -16,6 +18,26 @@
 Browser-based interactive structural variant visualization, inspired by [samplot](https://github.com/ryanlayer/samplot).
 
 This prototype reads indexed BAM files directly in the browser and renders samplot-style visualizations on an HTML5 Canvas — no server-side processing required.
+
+## Example Output
+
+These images are automatically generated from real BAM data on every commit via CI.
+
+### Deletion — chr4 (NA12878 / NA12889 / NA12890)
+
+![DEL chr4](svplot-js/examples/images/DEL_chr4_115928726_115931880.png)
+
+### Deletion — chr1 trio (HG002 / HG003 / HG004)
+
+![DEL chr1 trio](svplot-js/examples/images/DEL_1_24804398_24807302.png)
+
+### Deletion — chr1 (hg19 long-read)
+
+![DEL chr1 hg19](svplot-js/examples/images/DEL_chr1_58343117_58343622.png)
+
+### Inversion — chr21 (hg19 long-read)
+
+![INV chr21 hg19](svplot-js/examples/images/INV_chr21_27373431_27375410.png)
 
 ## Features
 
@@ -166,6 +188,9 @@ npm run build
 
 # Development build (unminified)
 npm run build:dev
+
+# Generate example images (saved to examples/images/)
+npm run generate-examples
 ```
 
 ## Architecture
