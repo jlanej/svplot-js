@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>samplot.js - Interactive Structural Variant Viewer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 20px; font-size: 14px; }
+    .controls {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .controls h2 { font-size: 16px; margin-bottom: 12px; }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: flex-end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #555;
+    }
+    .form-group input, .form-group select {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .form-group input[type="file"] { font-size: 12px; }
+    .sample-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 8px;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+    .sample-row label { font-size: 12px; min-width: 80px; }
+    button {
+      padding: 8px 20px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    .btn-secondary {
+      background: #6b7280;
+    }
+    .btn-secondary:hover { background: #4b5563; }
+    #plot-container {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #plot-container .placeholder {
+      color: #999;
+      font-size: 14px;
+    }
+    .nav-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    .nav-controls button { padding: 6px 14px; font-size: 13px; }
+    .status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+    .url-mode, .file-mode { display: none; }
+    .url-mode.active, .file-mode.active { display: block; }
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .mode-toggle button {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: #e5e7eb;
+      color: #333;
+    }
+    .mode-toggle button.active {
+      background: #2563eb;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>samplot.js</h1>
+  <p class="subtitle">Interactive browser-based structural variant visualization</p>
+
+  <div class="controls">
+    <h2>Region</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Chromosome</label>
+        <input type="text" id="chrom" value="chr4" size="8">
+      </div>
+      <div class="form-group">
+        <label>Start</label>
+        <input type="number" id="start" value="115928726">
+      </div>
+      <div class="form-group">
+        <label>End</label>
+        <input type="number" id="end" value="115931880">
+      </div>
+      <div class="form-group">
+        <label>SV Type</label>
+        <select id="svType">
+          <option value="DEL" selected>DEL</option>
+          <option value="DUP">DUP</option>
+          <option value="INV">INV</option>
+          <option value="">None</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Samples</h2>
+    <div class="mode-toggle">
+      <button id="btn-url-mode" class="active" onclick="setMode('url')">URL Mode</button>
+      <button id="btn-file-mode" onclick="setMode('file')">Local Files</button>
+    </div>
+
+    <div id="url-inputs" class="url-mode active">
+      <p style="font-size:12px; color:#666; margin-bottom:8px;">
+        Enter BAM file URLs. Index (.bai) files are expected at the same path with .bai extension.
+      </p>
+      <div id="url-samples">
+        <div class="sample-row">
+          <label>Sample 1:</label>
+          <input type="text" class="bam-url" placeholder="https://example.com/sample1.bam" size="50">
+          <input type="text" class="bam-label" placeholder="Label" size="12" value="NA12878">
+        </div>
+        <div class="sample-row">
+          <label>Sample 2:</label>
+          <input type="text" class="bam-url" placeholder="https://example.com/sample2.bam" size="50">
+          <input type="text" class="bam-label" placeholder="Label" size="12" value="NA12889">
+        </div>
+        <div class="sample-row">
+          <label>Sample 3:</label>
+          <input type="text" class="bam-url" placeholder="https://example.com/sample3.bam" size="50">
+          <input type="text" class="bam-label" placeholder="Label" size="12" value="NA12890">
+        </div>
+      </div>
+    </div>
+
+    <div id="file-inputs" class="file-mode">
+      <p style="font-size:12px; color:#666; margin-bottom:8px;">
+        Select BAM files along with their .bai index files.
+      </p>
+      <div id="file-samples">
+        <div class="sample-row">
+          <label>Sample 1:</label>
+          <input type="file" class="bam-file" accept=".bam">
+          <input type="file" class="bai-file" accept=".bai">
+          <input type="text" class="bam-label-file" placeholder="Label" size="12">
+        </div>
+        <div class="sample-row">
+          <label>Sample 2:</label>
+          <input type="file" class="bam-file" accept=".bam">
+          <input type="file" class="bai-file" accept=".bai">
+          <input type="text" class="bam-label-file" placeholder="Label" size="12">
+        </div>
+        <div class="sample-row">
+          <label>Sample 3:</label>
+          <input type="file" class="bam-file" accept=".bam">
+          <input type="file" class="bai-file" accept=".bai">
+          <input type="text" class="bam-label-file" placeholder="Label" size="12">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-top: 12px;">
+      <button id="btn-plot" onclick="runPlot()">Plot</button>
+    </div>
+  </div>
+
+  <div id="plot-container">
+    <span class="placeholder">Configure samples and region above, then click Plot</span>
+  </div>
+
+  <div class="nav-controls">
+    <button class="btn-secondary" onclick="zoomIn()">Zoom In</button>
+    <button class="btn-secondary" onclick="zoomOut()">Zoom Out</button>
+    <button class="btn-secondary" onclick="panLeft()">← Pan Left</button>
+    <button class="btn-secondary" onclick="panRight()">Pan Right →</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <!-- Load samplot.js bundle -->
+  <script src="../dist/samplot.js"></script>
+  <script>
+    let samplotInstance = null;
+
+    function setMode(mode) {
+      document.querySelectorAll('.url-mode, .file-mode').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mode-toggle button').forEach(el => el.classList.remove('active'));
+      if (mode === 'url') {
+        document.getElementById('url-inputs').classList.add('active');
+        document.getElementById('btn-url-mode').classList.add('active');
+      } else {
+        document.getElementById('file-inputs').classList.add('active');
+        document.getElementById('btn-file-mode').classList.add('active');
+      }
+    }
+
+    function getStatus() { return document.getElementById('status'); }
+
+    function getSamples() {
+      const isUrlMode = document.getElementById('url-inputs').classList.contains('active');
+
+      if (isUrlMode) {
+        const urls = document.querySelectorAll('#url-samples .bam-url');
+        const labels = document.querySelectorAll('#url-samples .bam-label');
+        const samples = [];
+        urls.forEach((urlInput, i) => {
+          if (urlInput.value.trim()) {
+            samples.push({
+              url: urlInput.value.trim(),
+              label: labels[i]?.value || `Sample ${i + 1}`,
+            });
+          }
+        });
+        return samples;
+      } else {
+        const bamFiles = document.querySelectorAll('#file-samples .bam-file');
+        const baiFiles = document.querySelectorAll('#file-samples .bai-file');
+        const labels = document.querySelectorAll('#file-samples .bam-label-file');
+        const samples = [];
+        bamFiles.forEach((bamInput, i) => {
+          if (bamInput.files.length > 0 && baiFiles[i]?.files.length > 0) {
+            samples.push({
+              bamFile: bamInput.files[0],
+              indexFile: baiFiles[i].files[0],
+              label: labels[i]?.value || bamInput.files[0].name.replace('.bam', ''),
+            });
+          }
+        });
+        return samples;
+      }
+    }
+
+    async function runPlot() {
+      const status = getStatus();
+      const container = document.getElementById('plot-container');
+      const btn = document.getElementById('btn-plot');
+
+      const samples = getSamples();
+      if (samples.length === 0) {
+        status.textContent = 'Error: Please provide at least one BAM file.';
+        return;
+      }
+
+      const chrom = document.getElementById('chrom').value.trim();
+      const start = parseInt(document.getElementById('start').value, 10);
+      const end = parseInt(document.getElementById('end').value, 10);
+      const svType = document.getElementById('svType').value;
+
+      if (!chrom || isNaN(start) || isNaN(end)) {
+        status.textContent = 'Error: Please fill in chromosome, start, and end.';
+        return;
+      }
+
+      // Clean up previous instance
+      if (samplotInstance) {
+        samplotInstance.destroy();
+      }
+
+      container.innerHTML = '';
+      btn.disabled = true;
+      status.textContent = 'Loading BAM data...';
+
+      try {
+        samplotInstance = new Samplot({
+          container: '#plot-container',
+          samples,
+          chrom,
+          start,
+          end,
+          svType: svType || undefined,
+        });
+
+        const t0 = performance.now();
+        await samplotInstance.plot();
+        const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+        status.textContent = `Rendered in ${elapsed}s — ${samples.length} sample(s), region: ${chrom}:${start}-${end}`;
+      } catch (err) {
+        status.textContent = `Error: ${err.message}`;
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function zoomIn() {
+      if (!samplotInstance) return;
+      const start = parseInt(document.getElementById('start').value, 10);
+      const end = parseInt(document.getElementById('end').value, 10);
+      const mid = Math.round((start + end) / 2);
+      const halfSpan = Math.round((end - start) / 4);
+      document.getElementById('start').value = mid - halfSpan;
+      document.getElementById('end').value = mid + halfSpan;
+      runPlot();
+    }
+
+    function zoomOut() {
+      if (!samplotInstance) return;
+      const start = parseInt(document.getElementById('start').value, 10);
+      const end = parseInt(document.getElementById('end').value, 10);
+      const mid = Math.round((start + end) / 2);
+      const halfSpan = Math.round((end - start));
+      document.getElementById('start').value = Math.max(0, mid - halfSpan);
+      document.getElementById('end').value = mid + halfSpan;
+      runPlot();
+    }
+
+    function panLeft() {
+      if (!samplotInstance) return;
+      const start = parseInt(document.getElementById('start').value, 10);
+      const end = parseInt(document.getElementById('end').value, 10);
+      const span = end - start;
+      const shift = Math.round(span * 0.25);
+      document.getElementById('start').value = Math.max(0, start - shift);
+      document.getElementById('end').value = end - shift;
+      runPlot();
+    }
+
+    function panRight() {
+      if (!samplotInstance) return;
+      const start = parseInt(document.getElementById('start').value, 10);
+      const end = parseInt(document.getElementById('end').value, 10);
+      const span = end - start;
+      const shift = Math.round(span * 0.25);
+      document.getElementById('start').value = start + shift;
+      document.getElementById('end').value = end + shift;
+      runPlot();
+    }
+  </script>
+</body>
+</html>
