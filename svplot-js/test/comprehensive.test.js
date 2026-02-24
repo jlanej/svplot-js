@@ -125,7 +125,7 @@ describeIfCanvas('Renderer', () => {
     const regionLen = ranges[0].end - ranges[0].start;
     const covHigh = new Float32Array(regionLen);
     const covLow = new Float32Array(regionLen);
-    // Simulate some coverage
+    // Simulate a coverage peak in the middle of the region
     for (let i = 0; i < regionLen; i++) {
       covHigh[i] = Math.max(0, 30 - Math.abs(i - regionLen / 2) * 0.1);
       covLow[i] = 5;

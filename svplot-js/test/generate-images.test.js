@@ -142,6 +142,7 @@ describe('Generate example images', () => {
       const outPath = await renderExample(example);
       expect(fs.existsSync(outPath)).toBe(true);
       const stats = fs.statSync(outPath);
+      // A valid rendered PNG should be well above the minimum PNG header size
       expect(stats.size).toBeGreaterThan(1000);
     }, 30000);
   }
